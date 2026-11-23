@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Backyard Events SG admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fbfaf7;color:#181818;font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 32px}
+@media(max-width:700px){.wrap{padding:16px}}
+h1{font-size:1.5rem;margin:0}h2{font-size:1.25rem;margin:0}h3{font-size:1rem;margin:18px 0 6px}
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.top span{margin-right:auto}
+button,.b{font:600 .9rem system-ui;background:#181818;color:#fff;border:0;border-radius:4px;padding:8px 14px;cursor:pointer;text-decoration:none;display:inline-block}
+button.g,.b.g{background:#fff;color:#181818;border:1px solid #cfccc2}
+button.sm,.b.sm{padding:5px 10px;font-size:.82rem}
+.b.wa{background:#1fa855}
+input,select,textarea{font:inherit;padding:8px;border:1px solid #cfccc2;border-radius:4px;width:100%;background:#fff}
+label{font-weight:600;font-size:.85rem;display:block}
+.box{background:#fff;border:1px solid #e2e0d9;border-radius:6px;padding:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid #eceae2;vertical-align:top}
+th{font-size:.8rem;color:#58585f}
+.s-New{background:#fff1c9}.s-Contacted{background:#d9e8ff}.s-Paid{background:#d0f0da}.s-Cancelled{background:#eee;color:#777}
+#login{max-width:340px;margin:12vh auto}
+.err{color:#b3261e;font-weight:600}
+dialog{border:0;border-radius:6px;padding:22px;width:min(480px,94vw);max-height:92vh;overflow:auto;background:#fbfaf7;color:#181818}dialog::backdrop{background:rgba(0,0,0,.55)}
+.hint{color:#58585f;font-size:.82rem;margin:4px 0 0}
+.br{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr auto;gap:8px;margin-bottom:8px;align-items:end}
+.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.th{width:110px;font-size:.75rem}.th img{width:110px;height:80px;object-fit:cover;border-radius:4px;display:block}
+.th button{width:100%;margin-top:3px;padding:4px}
+@media(max-width:700px){.br{grid-template-columns:1fr 1fr}}
+
+/* sections */
+.tabs{display:flex;gap:6px;margin:18px 0 0;border-bottom:2px solid #e2e0d9;overflow-x:auto}
+.tabs button{background:none;color:#58585f;border:0;border-bottom:3px solid transparent;border-radius:0;padding:10px 16px;margin-bottom:-2px;font-size:1rem;white-space:nowrap}
+.tabs button.on{color:#181818;border-color:#7a3ff0}
+.tabs i{font-style:normal;background:#ff66c1;color:#181818;border-radius:20px;padding:0 8px;font-size:.75rem;margin-left:6px}
+.sec{display:none;padding-top:22px}.sec.on{display:block}
+.bar{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+.bar label{min-width:170px;flex:1;max-width:260px}.bar .sp{flex:1}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.ev{background:#fff;border:1px solid #e2e0d9;border-left:6px solid #ffbc5b;border-radius:6px;padding:14px}
+.ev h3{margin:0 0 2px;font-size:1.1rem}.ev p{margin:2px 0;color:#58585f;font-size:.9rem}
+.ev .act{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.tag{display:inline-block;background:#ffbc5b;border-radius:3px;padding:0 7px;font-size:.78rem;font-weight:600}
+.meter{height:6px;background:#eceae2;border-radius:4px;margin:8px 0 2px;overflow:hidden}.meter div{height:100%;background:#7a3ff0}
+.box{margin-bottom:14px}.box h3{margin:0 0 8px}.box textarea,.box input{font-weight:400}.box textarea{width:100%}
+.fq{border:1px solid #e2e0d9;border-radius:6px;padding:10px;margin-bottom:10px;background:#fbfaf7}.fq .m{display:flex;gap:6px;margin-top:6px}
+.s-Applied{background:#ffe3f1}.s-Waitlist{background:#e6e0ff}.s-Approved{background:#d6f3f7}.s-Declined{background:#eee;color:#777}
+.chk2{display:flex;gap:6px;align-items:center;font-weight:400;font-size:.78rem;margin-top:6px}.chk2 input{width:auto}
+.warn{background:#fff1c9;border:1px solid #e6c46a;border-radius:6px;padding:10px 14px;margin:14px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid #e2e0d9;border-radius:6px;padding:14px}.stat b{display:block;font-size:1.7rem;line-height:1.1}.stat span{color:#58585f;font-size:.85rem}
+.bar2{height:8px;background:#7a3ff0;border-radius:2px;min-width:2px}
+td.num,th.num{text-align:right;white-space:nowrap}
+.rl{list-style:none;margin:0;padding:0}.rl li{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eceae2}.rl li span{flex:1}
+.rl .done a{opacity:.5}
+.grow{display:grid;grid-template-columns:110px 1fr auto;gap:10px;align-items:center;margin-bottom:10px}
+.grow img{width:110px;height:80px;object-fit:cover;border-radius:4px;background:#eceae2}
+table select{min-width:120px}
+</style>
+</head>
+<body>
+<div class="wrap" id="login">
+  <h1>Admin</h1><p>Enter your admin password.</p>
+  <input id="pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')go()">
+  <p><button onclick="go()">Log in</button></p><p class="err" id="lerr"></p>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <div class="top"><h1>Backyard Events SG</h1><span></span><button class="g" onclick="load()">Refresh</button><button class="g" onclick="backup()">Download backup</button><button class="g" onclick="logout()">Log out</button></div>
+  <p class="warn" id="upg" hidden><b>One-time database upgrade needed.</b> Some newest features (terms, waitlist, line-up, shopper list) won't work until you run <code>upgrade.sql</code> from the project folder in the Cloudflare D1 console. Steps are in the README.</p>
+  <nav class="tabs" id="tabs">
+    <button data-t="bookings" onclick="show('bookings')">Bookings <i id="newCount" hidden></i></button>
+    <button data-t="events" onclick="show('events')">Current events</button>
+    <button data-t="new" id="tabNew" onclick="newEvent()">Add an event</button>
+    <button data-t="contacts" onclick="show('contacts')">Contacts</button>
+    <button data-t="shop" onclick="show('shop')">Shoppers</button>
+    <button data-t="msg" onclick="show('msg')">Send a message</button>
+    <button data-t="sum" onclick="show('sum')">Summary</button>
+    <button data-t="site" onclick="show('site')">Site content</button>
+  </nav>
+
+  <!-- BOOKINGS -->
+  <section class="sec" id="t-bookings">
+    <div class="bar">
+      <label>Event<select id="fbEvent" onchange="renderBookings()"></select></label>
+      <label>Brand category<select id="fbCat" onchange="renderBookings()"></select></label>
+      <label>Status<select id="fbStatus" onchange="renderBookings()"></select></label>
+      <span class="sp"></span>
+      <button class="g" onclick="checkAll()">Check payments</button><button class="g" onclick="exportCsv()">Download bookings (CSV)</button>
+    </div>
+    <p class="hint" id="count" style="margin:0 0 8px"></p>
+    <div class="box scroll"><table>
+      <thead><tr><th>Received</th><th>Event</th><th>Who</th><th>Contact</th><th>Booths</th><th>Status</th><th></th></tr></thead>
+      <tbody id="bb"></tbody></table></div>
+    <p class="hint">After you confirm a vendor on WhatsApp, press "Create payment link" to send them a PayNow link for their exact total. If HitPay is connected, bookings turn Paid by themselves. "Check payments" asks HitPay about every unpaid link at once. For markets that are by application, set a booking to Approved before sending a payment link. Tick "Show on event page" to list an approved vendor on that event's page.</p>
+  </section>
+
+  <!-- CURRENT EVENTS -->
+  <section class="sec" id="t-events">
+    <div class="bar">
+      <label>Show<select id="feShow" onchange="renderEvents()"><option value="up">Upcoming and running</option><option value="past">Finished</option><option value="all">All events</option></select></label>
+      <span class="sp"></span>
+      <button onclick="newEvent()">+ Add an event</button>
+    </div>
+    <div class="cards" id="evCards"></div>
+  </section>
+
+  <!-- ADD / EDIT EVENT -->
+  <section class="sec" id="t-new">
+    <h2 id="formTitle" style="margin-bottom:12px">Add an event</h2>
+    <form class="box" id="ef" onsubmit="saveEv(event)">
+      <div class="grid">
+        <label>Event name<input name="title" required></label>
+        <label>Market theme<select name="theme"><option value="">None</option><option>Sustainability</option><option>Handmade</option><option>Festive: Chinese New Year</option><option>Festive: Christmas</option><option>Festive: Other</option></select></label>
+        <label>Type<select name="kind"><option>Craft fair</option><option>Atrium booth</option><option>Workshop</option><option>Other</option></select></label>
+        <label>Starts<input name="start_date" type="date" required></label>
+        <label>Ends<input name="end_date" type="date"></label>
+        <label>Venue<input name="venue"></label>
+        <label>Total booths available<input name="slots" type="number" min="0" value="20"></label>
+      </div>
+      <label class="chk2" style="font-size:.9rem;margin-top:12px"><input type="checkbox" name="apply"> This market is by application. Vendors apply first, you approve them, then they pay.</label>
+      <label style="margin-top:12px">Description<textarea name="description" rows="3" placeholder="What shoppers and vendors can expect"></textarea></label>
+
+      <h3>Booth pricing and dimensions</h3>
+      <div id="booths"></div>
+      <button type="button" class="g" onclick="addBooth()">+ Add a booth type</button>
+      <p class="hint">Bookings are for a weekend or a full week. Example: Standard, 2m x 1m, weekend 260, full week 480. Leave a price empty if you don't offer that length for the booth.</p>
+
+      <label style="margin-top:16px">What's included<textarea name="includes" rows="4" placeholder="One item per line, e.g.&#10;1 table and 2 chairs&#10;Power point&#10;Event promotion on our social media"></textarea></label>
+
+      <h3>Vendor info pack (private)</h3>
+      <textarea name="pack" rows="5" placeholder="Load-in and pack-down times, parking, power, what to bring, who to call on the day"></textarea>
+      <p class="hint">Not shown on the public site. After saving, press "Copy vendor info link" on the event card and send it to confirmed vendors on WhatsApp.</p>
+
+      <h3>Photos of the space</h3>
+      <input type="file" id="spaceFiles" accept="image/jpeg,image/png,image/webp" multiple>
+      <h3>Floor plan / layout</h3>
+      <input type="file" id="layoutFiles" accept="image/jpeg,image/png,image/webp" multiple>
+      <p class="hint">Photos are resized automatically before upload. Saved images:</p>
+      <div class="thumbs" id="thumbs"></div>
+
+      <p style="display:flex;gap:10px;margin-top:18px"><button id="saveBtn">Publish event</button><button type="button" class="g" onclick="resetForm();show('events')">Cancel</button></p>
+      <p class="err" id="ferr"></p>
+    </form>
+  </section>
+
+  <!-- SHOPPERS -->
+  <section class="sec" id="t-shop">
+    <div class="bar">
+      <label>Search<input id="shQ" type="search" placeholder="Name or number" oninput="renderShoppers()"></label>
+      <span class="sp"></span>
+      <button class="g" onclick="copyShop()">Copy all numbers</button>
+      <button class="g" onclick="exportShop()">Download list (CSV)</button>
+      <button onclick="msgGo('shop')">Message the list</button>
+    </div>
+    <p class="hint" id="shCount" style="margin:0 0 8px"></p>
+    <div class="box scroll"><table><thead><tr><th>Name</th><th>WhatsApp</th><th>Joined</th><th></th></tr></thead><tbody id="shBody"></tbody></table></div>
+    <p class="hint">These shoppers joined from your website and agreed to hear from you on WhatsApp. Remove anyone who asks to leave.</p>
+  </section>
+
+  <!-- SEND A MESSAGE -->
+  <section class="sec" id="t-msg">
+    <div class="box">
+      <h3 style="margin-top:0">Send a message to a group</h3>
+      <div class="grid">
+        <label>Who<select id="mWho" onchange="msgRender()"><option value="event">Vendors booked for an event</option><option value="cat">Vendors by brand category</option><option value="shop">Shoppers on the WhatsApp list</option></select></label>
+        <label id="mEvL">Event<select id="mEv" onchange="msgRender()"></select></label>
+        <label id="mStL">Booking status<select id="mSt" onchange="msgRender()"><option value="live">Not cancelled or declined</option><option value="Paid">Paid only</option><option value="Approved">Approved only</option><option value="Waitlist">Waitlist only</option><option value="Applied">Applications only</option></select></label>
+        <label id="mCatL">Brand category<select id="mCat" onchange="msgRender()"></select></label>
+      </div>
+      <label style="margin-top:12px">Message<textarea id="mText" rows="5" oninput="msgRender()"></textarea></label>
+      <p class="hint">Use {name} for each person's name and {event} for the event name. Example: Hi {name}, set-up for {event} starts at 7am on Friday.</p>
+    </div>
+    <div class="box" style="margin-top:14px">
+      <div class="bar" style="margin:0 0 8px"><h3 style="margin:0" id="mCount"></h3><span class="sp"></span><button class="g" onclick="msgCopy()">Copy all numbers</button></div>
+      <ul class="rl" id="mList"></ul>
+      <p class="hint">WhatsApp doesn't let a website message many people at once. Each button below opens that person's chat with the message already written, so you only tap Send. To send one message to everyone in one go, press "Copy all numbers" and add them to a broadcast list in the WhatsApp Business app.</p>
+    </div>
+  </section>
+
+  <!-- SUMMARY -->
+  <section class="sec" id="t-sum">
+    <div class="stats" id="sumStats"></div>
+    <h3>By event</h3>
+    <div class="box scroll"><table><thead><tr><th>Event</th><th class="num">Booths held</th><th class="num">Paid</th><th class="num">Awaiting payment</th><th style="width:22%"></th></tr></thead><tbody id="sumEv"></tbody></table></div>
+    <h3>By month</h3>
+    <div class="box scroll"><table><thead><tr><th>Month (event start)</th><th class="num">Paid</th><th class="num">Awaiting payment</th></tr></thead><tbody id="sumMo"></tbody></table></div>
+    <h3>By brand line</h3>
+    <div class="box scroll"><table><thead><tr><th>Brand category</th><th class="num">Bookings</th><th class="num">Paid</th></tr></thead><tbody id="sumCat"></tbody></table></div>
+    <p class="hint">Counts every booking except Cancelled, Declined, Waitlist and Applied. "Awaiting payment" is New, Approved and Contacted bookings.</p>
+  </section>
+
+  <!-- SITE CONTENT -->
+  <section class="sec" id="t-site">
+    <p class="hint" style="margin-bottom:14px">Changes here appear on the public website within a minute. Nothing needs to be redeployed.</p>
+    <form id="sf" onsubmit="saveSite(event)">
+      <div class="box"><h3>Announcement banner</h3>
+        <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="sBanOn" style="width:auto"> Show a banner across the top of every page</label>
+        <label>Banner message<input id="sBanT" maxlength="200" placeholder="CNY markets now open for booking"></label></div>
+      <div class="box"><h3>Homepage</h3>
+        <label>Headline<input id="sHT" maxlength="140"></label>
+        <label>Intro text<textarea id="sHP" rows="3" maxlength="600"></textarea></label>
+        <p class="hint">Photos (three polaroids). Choose a file to replace one.</p>
+        <div class="thumbs" id="sPhotos"></div></div>
+      <div class="box"><h3>Contact details</h3>
+        <div class="grid">
+          <label>WhatsApp number<input id="sWa" placeholder="6590267588"></label>
+          <label>Email<input id="sMail" type="email"></label>
+          <label>Instagram link<input id="sIg" placeholder="https://instagram.com/..."></label>
+          <label>Facebook link <small>(optional)</small><input id="sFb"></label>
+        </div><p class="hint">WhatsApp: country code first, digits only (Singapore starts with 65).</p>
+        <label style="margin-top:12px">Public website address<input id="sUrl" placeholder="https://backyardeventssg.pages.dev"></label>
+        <p class="hint">Used to build the private vendor info links. Use the address people visit, not this admin site.</p></div>
+      <div class="box"><h3>Past markets</h3><p class="hint">Photos from previous markets, shown on the homepage.</p>
+        <div id="sGal"></div>
+        <input type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="galAdd(this)"></div>
+      <div class="box"><h3>Vendor quotes</h3><p class="hint">Short quotes from vendors, shown next to the photos. Only add quotes people have given you permission to use.</p>
+        <div id="sQuotes"></div><p><button type="button" class="g" onclick="qAdd()">Add a quote</button></p></div>
+      <div class="box"><h3>Booking terms</h3>
+        <p class="hint">Vendors must tick that they agree before they can send a request, and you can see when they accepted. Leave this empty to turn the tick-box off.</p>
+        <textarea id="sTerms" rows="9" placeholder="Your cancellation, refund, set-up and conduct rules. Separate paragraphs with a blank line."></textarea>
+        <p><button type="button" class="g" onclick="termsStarter()">Insert a starter outline</button></p></div>
+      <div class="box"><h3>Market themes</h3><p class="hint">The wording under each theme on the homepage.</p><div id="sThemes"></div></div>
+      <div class="box"><h3>FAQ and policies</h3><p class="hint">Shown on the How it works page, in this order.</p><div id="sFaq"></div>
+        <p><button type="button" class="g" onclick="faqAdd()">Add a question</button></p></div>
+      <div class="box"><h3>Brand categories</h3>
+        <label>One category per line<textarea id="sCats" rows="9"></textarea></label>
+        <p class="hint">Used in the booking form, contacts and filters. Renaming one doesn't change contacts already saved under the old name.</p></div>
+      <p class="err" id="sErr"></p>
+      <p style="display:flex;gap:10px;align-items:center"><button id="sSave">Save changes</button><button type="button" class="g" onclick="siteReset()">Discard changes</button><span id="sOk" class="hint"></span></p>
+    </form>
+  </section>
+
+  <!-- CONTACTS -->
+  <section class="sec" id="t-contacts">
+    <div class="bar">
+      <label>Brand category<select id="fcCat" onchange="renderContacts()"></select></label>
+      <label>Search<input id="fcQ" type="search" placeholder="Name, brand or phone" oninput="renderContacts()"></label>
+      <span class="sp"></span>
+      <button class="g" onclick="importContacts()">Import from bookings</button>
+      <button class="g" onclick="exportContacts()">Download (CSV)</button>
+      <button onclick="openContact()">+ Add contact</button>
+    </div>
+    <p class="hint" id="cCount" style="margin:0 0 8px"></p>
+    <div class="box scroll"><table>
+      <thead><tr><th>Brand and contact</th><th>Brand category</th><th>Reach them</th><th>Bookings</th><th>Notes</th><th></th></tr></thead>
+      <tbody id="cb"></tbody></table></div>
+    <p class="hint">Vendors are added here automatically when they send a booking request. You can also add people yourself and change their category.</p>
+  </section>
+</div>
+
+<dialog id="payDlg"><div id="payBody"></div></dialog>
+
+<dialog id="cDlg">
+  <form id="cForm" onsubmit="saveContact(event)">
+    <h2 id="cTitle" style="margin-bottom:10px">Add contact</h2>
+    <label>Name<input name="name" required></label>
+    <label style="margin-top:10px">Brand or business<input name="business"></label>
+    <label style="margin-top:10px">Brand category<select name="category" id="cCatSel"></select></label>
+    <label style="margin-top:10px">WhatsApp number<input name="phone" type="tel"></label>
+    <label style="margin-top:10px">Email<input name="email" type="email"></label>
+    <label style="margin-top:10px">Instagram or Facebook link<input name="social"></label>
+    <label style="margin-top:10px">Notes<textarea name="notes" rows="2"></textarea></label>
+    <p class="err" id="cErr"></p>
+    <p style="display:flex;gap:8px;margin-top:12px"><button>Save contact</button><button type="button" class="g" onclick="$('#cDlg').close()">Cancel</button></p>
+  </form>
+</dialog>
+
+<script>
+var CATS=["Food & beverage","Jewellery & accessories","Fashion & apparel","Art & prints","Home & living","Beauty & wellness","Plants & florals","Kids & toys","Stationery & crafts","Zero-waste & sustainable","Other"];
+var STAT=["New","Applied","Waitlist","Approved","Contacted","Paid","Declined","Cancelled"];
+var PW=sessionStorage.getItem("pw")||"",$=function(s){return document.querySelector(s)},bk=[],evs=[],cts=[],shp=[],editing=null,editingC=null,imgs=[],tab="bookings";
+function esc(s){var d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML}
+function q(v){return esc(v||"").replace(/"/g,"&quot;")}
+function digits(p){return String(p||"").replace(/\D/g,"")}
+function waNum(p){var n=digits(p);return n.length===8?"65"+n:n}
+function soc(v){v=String(v).trim();var u=/^https?:\/\//i.test(v)?v:(/^(www\.|instagram\.com|facebook\.com|fb\.com|m\.facebook\.com)/i.test(v)?"https://"+v:"");
+  return u?'<a href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">Social profile</a>':esc(v)}
+function imgUrl(k){return"/api/img/"+k}
+function opts(list,sel,first){return(first?'<option value="">'+first+'</option>':'')+list.map(function(x){return'<option'+(x===sel?' selected':'')+'>'+esc(x)+'</option>'}).join("")}
+async function api(path,method,body){
+  var r=await fetch("/api/"+path,{method:method||"GET",headers:{authorization:"Bearer "+PW,"content-type":"application/json"},body:body?JSON.stringify(body):undefined});
+  if(r.status===401)throw new Error("auth");
+  var j=await r.json();if(!r.ok)throw new Error(j.error||"Something went wrong");return j;
+}
+async function go(){PW=$("#pw").value;try{await api("ping");sessionStorage.setItem("pw",PW);start()}catch(e){$("#lerr").textContent="That password didn't work."}}
+function logout(){sessionStorage.removeItem("pw");location.reload()}
+function start(){api("ping").then(function(j){$("#upg").hidden=j.upgraded!==false}).catch(function(){});$("#login").hidden=true;$("#app").hidden=false;$("#cCatSel").innerHTML=opts(CATS);addBooth();show("bookings");load()}
+
+/* ---------- sections ---------- */
+function show(t){
+  tab=t;
+  document.querySelectorAll(".sec").forEach(function(s){s.classList.toggle("on",s.id==="t-"+t)});
+  document.querySelectorAll("#tabs button").forEach(function(b){b.classList.toggle("on",b.dataset.t===t)});
+  window.scrollTo(0,0);
+}
+async function load(){
+  try{
+    var r=await Promise.all([api("bookings"),api("events"),api("contacts"),api("settings"),api("subscribers").catch(function(){return[]})]);bk=r[0];evs=r[1];cts=r[2];site=r[3];shp=r[4];if(site&&Array.isArray(site.cats)&&site.cats.length)CATS=site.cats;$("#cCatSel").innerHTML=opts(CATS);if(tab!=="site")siteFill();
+    var nw=bk.filter(function(b){return b.status==="New"||b.status==="Applied"||b.status==="Waitlist"}).length;
+    $("#newCount").textContent=nw;$("#newCount").hidden=!nw;
+    fillFilter("#fbEvent",evs.map(function(e){return[String(e.id),e.title]}),"All events");
+    fillFilter("#fbCat",CATS.map(function(c){return[c,c]}),"All categories");
+    fillFilter("#fbStatus",STAT.map(function(c){return[c,c]}),"All statuses");
+    fillFilter("#fcCat",CATS.map(function(c){return[c,c]}),"All categories");
+    renderBookings();renderEvents();renderContacts();renderShoppers();renderSummary();msgInit();
+  }catch(e){if(e.message==="auth")logout();else alert(e.message)}
+}
+function fillFilter(sel,pairs,first){
+  var el=$(sel),cur=el.value;
+  el.innerHTML='<option value="">'+first+'</option>'+pairs.map(function(p){return'<option value="'+q(p[0])+'">'+esc(p[1])+'</option>'}).join("");
+  if(pairs.some(function(p){return p[0]===cur}))el.value=cur;
+}
+
+/* ---------- bookings ---------- */
+function renderBookings(){
+  var fe=$("#fbEvent").value,fc=$("#fbCat").value,fs=$("#fbStatus").value;
+  var list=bk.filter(function(b){return(!fe||String(b.event_id)===fe)&&(!fc||b.category===fc)&&(!fs||b.status===fs)});
+  $("#count").textContent=list.length+" of "+bk.length+" booking"+(bk.length===1?"":"s")+" shown";
+  $("#bb").innerHTML=list.map(function(b){
+    var msg=b.status==="Applied"?"Hi "+b.name+", thanks for applying for a booth at "+(b.event_title||"our event")+" with Backyard Events SG! ":b.status==="Waitlist"?"Hi "+b.name+", thanks for joining the waitlist for "+(b.event_title||"our event")+" with Backyard Events SG. ":"Hi "+b.name+", thank you for your booking request for "+b.qty+" booth(s)"+(b.booth_type?" ("+b.booth_type+")":"")+(b.duration?", "+b.duration.toLowerCase():"")+" at "+(b.event_title||"our event")+" with Backyard Events SG! "+(b.total?"The total is $"+b.total+". ":"");
+    return'<tr><td>'+esc((b.created_at||"").slice(0,16))+'</td><td>'+esc(b.event_title)+(b.booth_type||b.duration?'<br><small>'+esc([b.booth_type,b.duration].filter(Boolean).join(', '))+'</small>':'')+'</td><td><b>'+esc(b.name)+'</b><br>'+esc(b.business)+(b.category?'<br><span class="tag">'+esc(b.category)+'</span>':'')+(b.note?'<br><i>'+esc(b.note)+'</i>':'')+(b.terms_at?'<br><small>Terms accepted '+esc(b.terms_at.slice(0,10))+'</small>':'')+'</td><td>'+esc(b.phone)+'<br>'+esc(b.email)+(b.social?'<br>'+soc(b.social):'')+'</td><td>'+b.qty+(b.total?'<br><small>$'+b.total+'</small>':'')+'</td>'+
+    '<td><select class="s-'+b.status+'" onchange="setSt('+b.id+',this.value)">'+opts(STAT,b.status)+'</select>'+(b.business&&(b.status==="Approved"||b.status==="Paid")?'<label class="chk2"><input type="checkbox" '+(b.show_public?'checked ':'')+'onchange="setShow('+b.id+',this.checked)">Show on event page</label>':'')+'</td>'+
+    '<td style="white-space:nowrap"><a class="b wa sm" target="_blank" rel="noopener" href="https://wa.me/'+waNum(b.phone)+'?text='+encodeURIComponent(msg)+'">WhatsApp</a> <button class="g sm" onclick="pay('+b.id+')">'+(b.pay_url?'Payment link':'Create payment link')+'</button> <button class="g sm" onclick="delB('+b.id+')">Delete</button></td></tr>'}).join("")||'<tr><td colspan="7">'+(bk.length?'No bookings match these filters.':'No bookings yet.')+'</td></tr>';
+}
+async function setShow(id,v){await api("bookings/"+id,"PATCH",{show_public:v});load()}
+async function checkAll(){$("#count").textContent="Asking HitPay...";try{var r=await api("payments/check","POST",{});$("#count").textContent="Checked "+r.checked+" payment link"+(r.checked===1?"":"s")+". "+r.paid+" newly paid.";load()}catch(e){$("#count").textContent=e.message}}
+async function backup(){try{var r=await fetch("/api/backup",{headers:{authorization:"Bearer "+PW}});if(!r.ok)throw new Error("Backup failed");var a=document.createElement("a");a.href=URL.createObjectURL(await r.blob());a.download="backyardeventssg-backup-"+todayIso()+".json";a.click()}catch(e){alert(e.message)}}
+async function setSt(id,s){await api("bookings/"+id,"PATCH",{status:s});load()}
+async function delB(id){if(confirm("Delete this booking for good?")){await api("bookings/"+id,"DELETE");load()}}
+
+/* ---------- payment link ---------- */
+async function pay(id,regen){
+  var d=$("#payDlg"),box=$("#payBody");box.innerHTML="<p>Creating the payment link...</p>";if(!d.open)d.showModal();
+  try{var r=await api("bookings/"+id+"/pay","POST",{regenerate:!!regen});showPay(id,r.url);load()}
+  catch(e){box.innerHTML='<h2 style="margin-top:0">Couldn\'t create the link</h2><p class="err">'+esc(e.message)+'</p><p><button class="g" onclick="$(\'#payDlg\').close()">Close</button></p>'}
+}
+function showPay(id,url,note){
+  var b=bk.find(function(x){return x.id===id})||{};
+  var msg="Hi "+b.name+", your booking for "+(b.event_title||"our event")+" ("+[b.booth_type,b.duration].filter(Boolean).join(", ")+") is confirmed with Backyard Events SG. The total is $"+b.total+". Please pay securely by PayNow here. The page shows a QR code with the exact amount: "+url;
+  $("#payBody").innerHTML='<h2 style="margin-top:0">Payment link</h2><p><b>'+esc(b.name)+'</b><br>'+esc(b.event_title)+'<br>'+esc([b.booth_type,b.duration].filter(Boolean).join(", "))+', '+b.qty+' booth(s)<br><b>$'+b.total+'</b> by PayNow</p>'+
+   '<input id="payUrl" readonly value="'+esc(url)+'" onclick="this.select()">'+
+   '<p style="display:flex;gap:8px;flex-wrap:wrap"><a class="b wa" target="_blank" rel="noopener" href="https://wa.me/'+waNum(b.phone)+'?text='+encodeURIComponent(msg)+'">Send on WhatsApp</a><button class="g" onclick="navigator.clipboard.writeText($(\'#payUrl\').value);this.textContent=\'Copied\'">Copy link</button><a class="b g" target="_blank" rel="noopener" href="'+esc(url)+'">Open page</a></p>'+
+   '<p id="payNote" class="hint">'+(note||"The vendor opens the link and scans the PayNow QR with their banking app.")+'</p>'+
+   '<p style="display:flex;gap:8px;flex-wrap:wrap"><button onclick="checkPay('+id+')">Check if paid</button><button class="g" onclick="if(confirm(\'Make a new link? The old one will stop being the one on file.\'))pay('+id+',true)">Make a new link</button><button class="g" onclick="$(\'#payDlg\').close()">Close</button></p>';
+}
+async function checkPay(id){
+  $("#payNote").textContent="Checking...";
+  try{var r=await api("bookings/"+id+"/pay");$("#payNote").textContent=r.paid?"Paid. The booking is now marked Paid.":"Not paid yet (HitPay status: "+r.status+").";load()}
+  catch(e){$("#payNote").textContent=e.message}
+}
+
+/* ---------- current events ---------- */
+function todayIso(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function renderEvents(){
+  var t=todayIso(),m=$("#feShow").value;
+  var list=evs.filter(function(e){return m==="all"||(m==="up"?e.end_date>=t:e.end_date<t)});
+  $("#evCards").innerHTML=list.map(function(e){
+    var n=bk.filter(function(b){return b.event_id===e.id&&b.status!=="Cancelled"}).length,pct=e.slots?Math.min(100,Math.round(e.booked/e.slots*100)):0;
+    return'<div class="ev"><h3>'+esc(e.title)+'</h3><p>'+esc(e.start_date)+' to '+esc(e.end_date)+'<br>'+esc(e.venue)+'</p><p><span class="tag">'+esc(e.kind)+'</span> '+(e.theme?'<span class="tag" style="background:#ff9fd5">'+esc(e.theme)+'</span> ':'')+(e.apply?'<span class="tag" style="background:#d3a4f2">By application</span>':'')+'</p>'+
+    (e.slots?'<div class="meter"><div style="width:'+pct+'%"></div></div><p>'+e.booked+' of '+e.slots+' booths booked</p>':'')+
+    '<p>'+n+' booking request'+(n===1?'':'s')+' &middot; '+e.booths.length+' booth type'+(e.booths.length===1?'':'s')+' &middot; '+e.images.length+' photo'+(e.images.length===1?'':'s')+'</p>'+
+    '<div class="act"><button class="sm" onclick="viewBookings('+e.id+')">View bookings</button><button class="g sm" onclick="editEv('+e.id+')">Edit</button>'+(e.pack_token?'<button class="g sm" onclick="copyPack('+e.id+',this)">Copy vendor info link</button>':'')+'<button class="g sm" onclick="msgEvent('+e.id+')">Message vendors</button><button class="g sm" onclick="delEv('+e.id+')">Delete</button></div></div>'}).join("")||'<p class="hint">'+(evs.length?'No events in this view.':'No events yet. Press "Add an event" to create your first one.')+'</p>';
+}
+function copyPack(id,btn){
+  var e=evs.find(function(x){return x.id===id}),base=((site&&site.siteUrl)||"").replace(/\/$/,"");
+  if(!base){alert("Add your public website address under Site content first (for example https://backyardeventssg.pages.dev).");show("site");return}
+  navigator.clipboard.writeText(base+"/#/pack/"+id+"?t="+e.pack_token);btn.textContent="Copied. Paste it into WhatsApp"}
+function viewBookings(id){$("#fbEvent").value=String(id);$("#fbCat").value="";$("#fbStatus").value="";renderBookings();show("bookings")}
+async function delEv(id){if(confirm("Delete this event and its photos? Its bookings stay in the list.")){await api("events/"+id,"DELETE");load()}}
+
+/* ---------- add / edit event ---------- */
+function addBooth(b){b=b||{};
+  var d=document.createElement("div");d.className="br";
+  d.innerHTML='<label>Booth name<input class="bn" value="'+q(b.name)+'" placeholder="Standard"></label><label>Size<input class="bs" value="'+q(b.size)+'" placeholder="2m x 1m"></label><label>Weekend price (S$)<input class="bw" type="number" min="0" value="'+(b.weekend||"")+'"></label><label>Full week price (S$)<input class="bk" type="number" min="0" value="'+(b.week||"")+'"></label><button type="button" class="g" onclick="this.parentNode.remove()">Remove</button>';
+  $("#booths").appendChild(d)}
+function renderThumbs(){
+  $("#thumbs").innerHTML=imgs.map(function(i,n){return'<div class="th"><img src="'+imgUrl(i.key)+'" alt=""><span>'+(i.kind==="layout"?"Floor plan":"Space")+'</span><button type="button" class="g" onclick="imgs.splice('+n+',1);renderThumbs()">Remove</button></div>'}).join("")||'<span class="hint">None yet.</span>'}
+function resetForm(){editing=null;imgs=[];$("#ef").reset();$("#booths").innerHTML="";addBooth();renderThumbs();$("#formTitle").textContent="Add an event";$("#tabNew").textContent="Add an event";$("#saveBtn").textContent="Publish event";$("#ferr").textContent=""}
+function newEvent(){resetForm();show("new")}
+function editEv(id){
+  var e=evs.find(function(x){return x.id===id});if(!e)return;resetForm();editing=id;
+  var f=$("#ef");["title","theme","kind","start_date","end_date","venue","slots","description","includes","pack"].forEach(function(k){f.elements[k].value=e[k]==null?"":e[k]});f.elements.apply.checked=!!e.apply;
+  $("#booths").innerHTML="";(e.booths.length?e.booths:[{}]).forEach(addBooth);imgs=e.images.slice();renderThumbs();
+  $("#formTitle").textContent="Edit event";$("#tabNew").textContent="Edit event";$("#saveBtn").textContent="Save changes";show("new")}
+async function shrink(f){
+  if(!/^image\/(jpeg|png|webp)$/.test(f.type))throw new Error("Please use JPG, PNG or WebP photos.");
+  var bm=await createImageBitmap(f),sc=Math.min(1,1600/Math.max(bm.width,bm.height)),c=document.createElement("canvas");
+  c.width=Math.round(bm.width*sc);c.height=Math.round(bm.height*sc);c.getContext("2d").drawImage(bm,0,0,c.width,c.height);
+  return new Promise(function(r){c.toBlob(r,"image/jpeg",.86)})}
+async function upload(blob){
+  var r=await fetch("/api/upload",{method:"POST",headers:{authorization:"Bearer "+PW,"content-type":"image/jpeg"},body:blob});
+  var j=await r.json();if(!r.ok)throw new Error(j.error||"Upload failed");return j.key}
+async function saveEv(ev){
+  ev.preventDefault();var f=ev.target,btn=$("#saveBtn");$("#ferr").textContent="";btn.disabled=true;btn.textContent="Saving...";
+  try{
+    var added=[];
+    for(var pair of [["#spaceFiles","space"],["#layoutFiles","layout"]])
+      for(var file of $(pair[0]).files)added.push({key:await upload(await shrink(file)),kind:pair[1]});
+    var booths=[].map.call(document.querySelectorAll(".br"),function(r){return{name:r.querySelector(".bn").value.trim(),size:r.querySelector(".bs").value.trim(),weekend:+r.querySelector(".bw").value||0,week:+r.querySelector(".bk").value||0}}).filter(function(b){return b.name});
+    if(!booths.length)throw new Error("Add at least one booth type so vendors can see the price upfront.");
+    if(booths.some(function(b){return !b.weekend&&!b.week}))throw new Error("Every booth type needs a weekend price, a full week price, or both.");
+    var o=Object.fromEntries(new FormData(f).entries());o.booths=booths;o.images=imgs.concat(added);
+    await api(editing?"events/"+editing:"events",editing?"PUT":"POST",o);
+    resetForm();await load();show("events");
+  }catch(e){$("#ferr").textContent=e.message}
+  btn.disabled=false;btn.textContent=editing?"Save changes":"Publish event";
+}
+
+/* ---------- shoppers ---------- */
+function renderShoppers(){
+  var qv=($("#shQ").value||"").toLowerCase(),list=shp.filter(function(x){return!qv||(x.name+" "+x.phone).toLowerCase().indexOf(qv)>-1});
+  $("#shCount").textContent=list.length+" of "+shp.length+" on the list";
+  $("#shBody").innerHTML=list.map(function(x){return'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.phone)+'</td><td>'+esc((x.created_at||"").slice(0,10))+'</td><td style="white-space:nowrap"><a class="b wa sm" target="_blank" rel="noopener" href="https://wa.me/'+waNum(x.phone)+'">WhatsApp</a> <button class="g sm" onclick="delShop('+x.id+')">Remove</button></td></tr>'}).join("")||'<tr><td colspan="4">'+(shp.length?"No one matches that search.":"No one has joined yet. The sign-up form is on your homepage and contact page.")+'</td></tr>'}
+async function delShop(id){if(confirm("Remove this person from the list?")){await api("subscribers/"+id,"DELETE");load()}}
+function copyShop(){navigator.clipboard.writeText(shp.map(function(x){return"+"+waNum(x.phone)}).join("\n"));alert("Copied "+shp.length+" numbers.")}
+function exportShop(){csv([["Name","WhatsApp","Joined"]].concat(shp.map(function(x){return[x.name,x.phone,x.created_at]})),"whatsapp-list.csv")}
+
+/* ---------- send a message ---------- */
+var mSent={};
+function msgInit(){
+  var cur=$("#mEv").value;fillSel("#mEv",evs.map(function(e){return[String(e.id),e.title+" ("+e.start_date+")"]}),cur);
+  var cc=$("#mCat").value;fillSel("#mCat",[["","All brand categories"]].concat(CATS.map(function(c){return[c,c]})),cc);
+  msgRender()}
+function fillSel(sel,pairs,cur){$(sel).innerHTML=pairs.map(function(p){return'<option value="'+q(p[0])+'">'+esc(p[1])+'</option>'}).join("");if(pairs.some(function(p){return p[0]===cur}))$(sel).value=cur}
+function msgGo(w){$("#mWho").value=w;show("msg");msgRender()}
+function msgEvent(id){$("#mWho").value="event";$("#mEv").value=String(id);show("msg");msgRender()}
+function recips(){
+  var w=$("#mWho").value,out=[],seen={};
+  function add(n,ph,ev){var k=digits(ph);if(!k||seen[k])return;seen[k]=1;out.push({name:n,phone:ph,event:ev||""})}
+  if(w==="event"){var st=$("#mSt").value,id=$("#mEv").value;bk.filter(function(b){return String(b.event_id)===id&&(st==="live"?(b.status!=="Cancelled"&&b.status!=="Declined"):b.status===st)}).forEach(function(b){add(b.name,b.phone,b.event_title)})}
+  else if(w==="cat"){var c=$("#mCat").value;cts.filter(function(x){return!c||x.category===c}).forEach(function(x){add(x.name,x.phone,"")})}
+  else shp.forEach(function(x){add(x.name,x.phone,"")});
+  return out}
+function msgRender(){
+  var w=$("#mWho").value;$("#mEvL").style.display=$("#mStL").style.display=w==="event"?"":"none";$("#mCatL").style.display=w==="cat"?"":"none";
+  var list=recips(),t=$("#mText").value;
+  $("#mCount").textContent=list.length+" "+(list.length===1?"person":"people");
+  $("#mList").innerHTML=list.map(function(r,i){var m=t.replace(/\{name\}/g,(r.name||"").split(" ")[0]||"there").replace(/\{event\}/g,r.event||"our next market"),k=digits(r.phone);
+    return'<li class="'+(mSent[k]?"done":"")+'"><span><b>'+esc(r.name)+'</b> '+esc(r.phone)+'</span><a class="b wa sm" target="_blank" rel="noopener" onclick="mSent[\''+k+'\']=1;this.closest(\'li\').classList.add(\'done\')" href="https://wa.me/'+waNum(r.phone)+'?text='+encodeURIComponent(m)+'">'+(mSent[k]?"Sent. Open again":"Open WhatsApp")+'</a></li>'}).join("")||'<li><span class="hint">No one matches yet.</span></li>'}
+function msgCopy(){var l=recips();navigator.clipboard.writeText(l.map(function(r){return"+"+waNum(r.phone)}).join("\n"));alert("Copied "+l.length+" numbers.")}
+
+/* ---------- summary ---------- */
+function money(n){return"$"+Math.round(n).toLocaleString("en-SG")}
+function renderSummary(){
+  var live=bk.filter(function(b){return["Cancelled","Declined","Waitlist","Applied"].indexOf(b.status)<0});
+  var paid=function(b){return b.status==="Paid"},sum=function(l,f){return l.reduce(function(a,b){return a+(f(b)?(+b.total||0):0)},0)};
+  var tp=sum(live,paid),ta=sum(live,function(b){return!paid(b)});
+  var review=bk.filter(function(b){return b.status==="Applied"}).length,wait=bk.filter(function(b){return b.status==="Waitlist"}).length;
+  $("#sumStats").innerHTML=[[money(tp),"Paid"],[money(ta),"Awaiting payment"],[live.reduce(function(a,b){return a+(+b.qty||0)},0),"Booths held"],[review,"Applications to review"],[wait,"On waitlists"],[shp.length,"Shoppers on WhatsApp list"]].map(function(x){return'<div class="stat"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>'}).join("");
+  var max=Math.max.apply(null,[1].concat(evs.map(function(e){return sum(live.filter(function(b){return b.event_id===e.id}),function(){return true})})));
+  $("#sumEv").innerHTML=evs.slice().sort(function(a,b){return a.start_date<b.start_date?1:-1}).map(function(e){var l=live.filter(function(b){return b.event_id===e.id}),p=sum(l,paid),a=sum(l,function(b){return!paid(b)});
+    return'<tr><td><b>'+esc(e.title)+'</b><br><small>'+esc(e.start_date)+'</small></td><td class="num">'+l.reduce(function(x,b){return x+(+b.qty||0)},0)+(e.slots?" of "+e.slots:"")+'</td><td class="num">'+money(p)+'</td><td class="num">'+money(a)+'</td><td><div class="bar2" style="width:'+Math.round((p+a)/max*100)+'%"></div></td></tr>'}).join("")||'<tr><td colspan="5">No events yet.</td></tr>';
+  var mo={};live.forEach(function(b){var e=evs.find(function(x){return x.id===b.event_id}),k=e?e.start_date.slice(0,7):"Unknown";mo[k]=mo[k]||[0,0];mo[k][paid(b)?0:1]+=+b.total||0});
+  $("#sumMo").innerHTML=Object.keys(mo).sort().reverse().map(function(k){return'<tr><td>'+esc(k)+'</td><td class="num">'+money(mo[k][0])+'</td><td class="num">'+money(mo[k][1])+'</td></tr>'}).join("")||'<tr><td colspan="3">No bookings yet.</td></tr>';
+  var ct={};live.forEach(function(b){var k=b.category||"Not set";ct[k]=ct[k]||[0,0];ct[k][0]++;if(paid(b))ct[k][1]+=+b.total||0});
+  $("#sumCat").innerHTML=Object.keys(ct).sort(function(a,b){return ct[b][0]-ct[a][0]}).map(function(k){return'<tr><td>'+esc(k)+'</td><td class="num">'+ct[k][0]+'</td><td class="num">'+money(ct[k][1])+'</td></tr>'}).join("")||'<tr><td colspan="3">No bookings yet.</td></tr>';
+}
+
+/* ---------- site content ---------- */
+var DEF={"hero": {"title": "Where Singapore's makers meet their next customers.", "text": "Backyard Events SG organises craft fairs and atrium pop-up booths in malls and community spaces across Singapore. Choose your event, reserve your booth online in a couple of minutes, and our team will take care of the rest.", "photos": ["", "", ""]}, "contact": {"wa": "6590267588", "email": "hello@backyardeventssg.com", "ig": "https://instagram.com/", "fb": ""}, "faq": [{"q": "How long can I book a booth for?", "a": "Booths are booked for either a weekend or a full week. Each event's details show which lengths are available and the price for each."}, {"q": "How much will it cost?", "a": "Every event shows its booth prices upfront, for a weekend or a full week, and the booking form shows your total before you send it."}, {"q": "How do I reserve a booth?", "a": "Open an event, choose your booth type and booking length, and send us your details. Then confirm on WhatsApp and we'll complete your booking with you there."}, {"q": "How do I pay?", "a": "Payment is confirmed on WhatsApp. After you send your request, we'll share the PayNow details with you there, and your booth is reserved once we confirm your payment."}, {"q": "What's included with my booth?", "a": "It depends on the event. Open any event to see what's provided, along with the floor plan and photos of the space."}, {"q": "Can I book more than one booth?", "a": "Yes, you can request several booths in one booking. For larger setups, message us and we'll help you plan it."}, {"q": "Will my products suit your markets?", "a": "Our markets are curated around sustainability, handmade and festive themes. If you're not sure whether your products fit, message us and we'll let you know."}], "themes": [{"name": "Sustainability", "text": "Mindful brands with low-waste, reusable, upcycled and thoughtfully made products."}, {"name": "Handmade", "text": "Independent makers selling small-batch, hand-crafted pieces."}, {"name": "Festive", "text": "Seasonal markets for celebrations such as Chinese New Year and Christmas."}], "banner": {"on": false, "text": ""}, "cats": ["Food & beverage", "Jewellery & accessories", "Fashion & apparel", "Art & prints", "Home & living", "Beauty & wellness", "Plants & florals", "Kids & toys", "Stationery & crafts", "Zero-waste & sustainable", "Other"]},site=null,photoKeys=["","",""],photoNew=[null,null,null];
+function merge(s){s=s||{};var o=JSON.parse(JSON.stringify(DEF)),h=s.hero||{},c=s.contact||{};
+  if(h.title)o.hero.title=h.title;if(h.text)o.hero.text=h.text;if(h.photos)o.hero.photos=h.photos.concat(["","",""]).slice(0,3);
+  ["wa","email","ig","fb"].forEach(function(k){if(c[k]!==undefined&&c[k]!==null&&(c[k]!==""||k==="ig"||k==="fb"))o.contact[k]=c[k]});
+  if(Array.isArray(s.faq)&&s.faq.length)o.faq=s.faq;
+  if(Array.isArray(s.themes))s.themes.forEach(function(t,i){if(t&&t.text&&o.themes[i])o.themes[i].text=t.text});
+  if(s.banner)o.banner=s.banner;if(Array.isArray(s.cats)&&s.cats.length)o.cats=s.cats;
+  o.siteUrl=s.siteUrl||"";o.terms={text:(s.terms&&s.terms.text)||""};o.gallery=Array.isArray(s.gallery)?s.gallery:[];o.quotes=Array.isArray(s.quotes)?s.quotes:[];return o}
+function siteFill(){
+  var o=merge(site);$("#sBanOn").checked=!!o.banner.on;$("#sBanT").value=o.banner.text||"";
+  $("#sHT").value=o.hero.title;$("#sHP").value=o.hero.text;photoKeys=o.hero.photos.slice();photoNew=[null,null,null];photos();
+  $("#sWa").value=o.contact.wa;$("#sMail").value=o.contact.email;$("#sIg").value=o.contact.ig;$("#sFb").value=o.contact.fb;
+  $("#sThemes").innerHTML=o.themes.map(function(t,i){return'<label>'+esc(t.name)+'<textarea class="tt" rows="2" maxlength="300">'+esc(t.text)+'</textarea></label>'}).join("");
+  $("#sFaq").innerHTML="";o.faq.forEach(faqAdd);$("#sCats").value=o.cats.join("\n");$("#sUrl").value=o.siteUrl;$("#sTerms").value=o.terms.text;
+  galItems=o.gallery.map(function(g){return{key:g.key,caption:g.caption||""}});galRender();$("#sQuotes").innerHTML="";o.quotes.forEach(qAdd);$("#sErr").textContent="";$("#sOk").textContent=""}
+var galItems=[];
+function galRender(){$("#sGal").innerHTML=galItems.map(function(g,i){var src=g.file?URL.createObjectURL(g.file):imgUrl(g.key);return'<div class="grow"><img src="'+src+'" alt=""><input value="'+q(g.caption)+'" placeholder="Caption, e.g. Tampines Atrium, Christmas 2025" oninput="galItems['+i+'].caption=this.value"><button type="button" class="g" onclick="galDel('+i+')">Remove</button></div>'}).join("")}
+function galAdd(el){for(var f of el.files)if(galItems.length<12)galItems.push({file:f,caption:""});el.value="";galRender()}
+function galDel(i){galItems.splice(i,1);galRender()}
+function qAdd(x){x=x&&x.text!==undefined?x:{text:"",name:""};var d=document.createElement("div");d.className="fq";d.innerHTML='<label>Quote<textarea class="qt" rows="2" maxlength="400">'+esc(x.text)+'</textarea></label><label>Who said it<input class="qn" maxlength="100" value="'+q(x.name)+'" placeholder="Mei, Clay &amp; Kiln Studio"></label><p style="margin:6px 0 0"><button type="button" class="g" onclick="this.closest(\'.fq\').remove()">Delete</button></p>';$("#sQuotes").appendChild(d)}
+function termsStarter(){if($("#sTerms").value.trim()&&!confirm("Replace what's in the box with the starter outline?"))return;$("#sTerms").value="Booking and payment\nA booth is reserved once we confirm your booking on WhatsApp and your payment is received.\n\nCancellations and refunds\n[Write your cancellation and refund policy here.]\n\nSet-up and pack-down\n[Write your set-up and pack-down times and rules here.]\n\nConduct and liability\n[Write your rules on products sold, conduct and liability here.]"}
+function siteReset(){siteFill()}
+function photos(){$("#sPhotos").innerHTML=[0,1,2].map(function(i){
+  var src=photoNew[i]?URL.createObjectURL(photoNew[i]):(photoKeys[i]?imgUrl(photoKeys[i]):"");
+  return'<div class="th">'+(src?'<img src="'+src+'" alt="">':'<div style="width:110px;height:80px;background:#eceae2;border-radius:4px;display:grid;place-items:center">Not set</div>')+
+  '<input type="file" accept="image/jpeg,image/png,image/webp" onchange="photoPick('+i+',this)" style="font-size:.7rem;padding:2px">'+
+  ((src)?'<button type="button" class="g" onclick="photoClear('+i+')">Remove</button>':'')+'</div>'}).join("")}
+function photoPick(i,el){if(el.files[0]){photoNew[i]=el.files[0];photos()}}
+function photoClear(i){photoNew[i]=null;photoKeys[i]="";photos()}
+function faqAdd(f){f=f&&f.q!==undefined?f:{q:"",a:""};var d=document.createElement("div");d.className="fq";
+  d.innerHTML='<label>Question<input class="fqq" maxlength="160" value="'+q(f.q)+'"></label><label>Answer<textarea class="fqa" rows="3" maxlength="1500">'+esc(f.a)+'</textarea></label>'+
+  '<div class="m"><button type="button" class="g" onclick="faqMove(this,-1)">Move up</button><button type="button" class="g" onclick="faqMove(this,1)">Move down</button><button type="button" class="g" onclick="this.closest(\'.fq\').remove()">Delete</button></div>';
+  $("#sFaq").appendChild(d)}
+function faqMove(b,dir){var d=b.closest(".fq"),o=dir<0?d.previousElementSibling:d.nextElementSibling;if(!o)return;dir<0?d.parentNode.insertBefore(d,o):d.parentNode.insertBefore(o,d)}
+async function saveSite(ev){
+  ev.preventDefault();var btn=$("#sSave");btn.disabled=true;btn.textContent="Saving...";$("#sErr").textContent="";$("#sOk").textContent="";
+  try{
+    var keys=photoKeys.slice();
+    for(var i=0;i<3;i++)if(photoNew[i])keys[i]=await upload(await shrink(photoNew[i]));
+    var wa=$("#sWa").value.replace(/\D/g,"");if(wa.length===8)wa="65"+wa;
+    if(wa.length<8)throw new Error("Enter a valid WhatsApp number.");
+    var mail=$("#sMail").value.trim();if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))throw new Error("Enter a valid email address.");
+    var faq=[].map.call(document.querySelectorAll("#sFaq .fq"),function(d){return{q:d.querySelector(".fqq").value.trim(),a:d.querySelector(".fqa").value.trim()}}).filter(function(f){return f.q&&f.a});
+    var cats=$("#sCats").value.split("\n").map(function(x){return x.trim()}).filter(Boolean);
+    if(cats.length<2)throw new Error("Add at least two brand categories.");
+    var terms=$("#sTerms").value.trim();if(/\[[^\]]+\]/.test(terms))throw new Error("The booking terms still have text in [square brackets]. Replace it with your own policy, or clear the box to turn the tick-box off.");
+    var gal=[];for(var g of galItems){gal.push({key:g.file?await upload(await shrink(g.file)):g.key,caption:g.caption})}
+    var quotes=[].map.call(document.querySelectorAll("#sQuotes .fq"),function(d){return{text:d.querySelector(".qt").value.trim(),name:d.querySelector(".qn").value.trim()}}).filter(function(x){return x.text});
+    var o=merge(null);
+    var body={banner:{on:$("#sBanOn").checked,text:$("#sBanT").value.trim()},hero:{title:$("#sHT").value.trim(),text:$("#sHP").value.trim(),photos:keys},
+      contact:{wa:wa,email:mail,ig:$("#sIg").value.trim(),fb:$("#sFb").value.trim()},faq:faq,
+      themes:o.themes.map(function(t,i){return{name:t.name,text:document.querySelectorAll(".tt")[i].value.trim()}}),cats:cats,siteUrl:$("#sUrl").value.trim(),terms:{text:terms},gallery:gal,quotes:quotes};
+    if(body.banner.on&&!body.banner.text)throw new Error("Type a banner message, or switch the banner off.");
+    site=await api("settings","PUT",body);CATS=site.cats;siteFill();$("#sOk").textContent="Saved. The website will show this shortly.";refreshCats();
+  }catch(e){$("#sErr").textContent=e.message}
+  btn.disabled=false;btn.textContent="Save changes";
+}
+function refreshCats(){$("#cCatSel").innerHTML=opts(CATS);fillFilter("#fbCat",CATS.map(function(c){return[c,c]}),"All categories");fillFilter("#fcCat",CATS.map(function(c){return[c,c]}),"All categories");renderContacts&&renderContacts()}
+
+/* ---------- contacts ---------- */
+function bookingsFor(c){var p=digits(c.phone),m=String(c.email||"").toLowerCase();return bk.filter(function(b){return(p&&digits(b.phone)===p)||(m&&String(b.email||"").toLowerCase()===m)}).length}
+function renderContacts(){
+  var fc=$("#fcCat").value,qv=($("#fcQ").value||"").trim().toLowerCase();
+  var list=cts.filter(function(c){return(!fc||c.category===fc)&&(!qv||[c.name,c.business,c.phone,c.email,c.notes].join(" ").toLowerCase().indexOf(qv)>-1)});
+  $("#cCount").textContent=list.length+" of "+cts.length+" contact"+(cts.length===1?"":"s")+" shown";
+  $("#cb").innerHTML=list.map(function(c){
+    var msg="Hi "+c.name+", it's Backyard Events SG! ";
+    return'<tr><td><b>'+esc(c.business||c.name)+'</b>'+(c.business?'<br>'+esc(c.name):'')+'</td>'+
+     '<td><select onchange="setCat('+c.id+',this.value)">'+opts(CATS,c.category)+'</select></td>'+
+     '<td>'+esc(c.phone)+(c.email?'<br>'+esc(c.email):'')+(c.social?'<br>'+soc(c.social):'')+'</td><td>'+bookingsFor(c)+'</td><td>'+esc(c.notes)+'</td>'+
+     '<td style="white-space:nowrap">'+(digits(c.phone)?'<a class="b wa sm" target="_blank" rel="noopener" href="https://wa.me/'+waNum(c.phone)+'?text='+encodeURIComponent(msg)+'">WhatsApp</a> ':'')+'<button class="g sm" onclick="openContact('+c.id+')">Edit</button> <button class="g sm" onclick="delC('+c.id+')">Delete</button></td></tr>'}).join("")||'<tr><td colspan="6">'+(cts.length?'No contacts match this filter.':'No contacts yet. They appear here when vendors send booking requests, or press "Import from bookings".')+'</td></tr>';
+}
+async function setCat(id,v){var c=cts.find(function(x){return x.id===id});if(!c)return;await api("contacts/"+id,"PUT",Object.assign({},c,{category:v}));load()}
+function openContact(id){
+  var c=cts.find(function(x){return x.id===id})||{},f=$("#cForm");editingC=c.id||null;
+  $("#cTitle").textContent=c.id?"Edit contact":"Add contact";$("#cErr").textContent="";
+  ["name","business","phone","email","social","notes"].forEach(function(k){f.elements[k].value=c[k]||""});
+  f.elements.category.value=c.category||"Other";$("#cDlg").showModal()}
+async function saveContact(ev){
+  ev.preventDefault();var o=Object.fromEntries(new FormData(ev.target).entries());
+  try{await api(editingC?"contacts/"+editingC:"contacts",editingC?"PUT":"POST",o);$("#cDlg").close();load()}catch(e){$("#cErr").textContent=e.message}
+}
+async function delC(id){if(confirm("Delete this contact? Their bookings stay in the list.")){await api("contacts/"+id,"DELETE");load()}}
+async function importContacts(){
+  var seen={},add=[];
+  bk.forEach(function(b){
+    var p=digits(b.phone),m=String(b.email||"").toLowerCase(),key=p||m;
+    var have=cts.some(function(c){return(p&&digits(c.phone)===p)||(m&&String(c.email||"").toLowerCase()===m)});
+    if(!have&&key&&!seen[key]){seen[key]=1;add.push({name:b.name,business:b.business||"",category:b.category||"Other",phone:b.phone,email:b.email,social:b.social||"",notes:""})}
+  });
+  if(!add.length){alert("Everyone from your bookings is already in your contacts.");return}
+  if(!confirm("Add "+add.length+" new contact"+(add.length===1?"":"s")+" from your bookings?"))return;
+  for(var c of add)await api("contacts","POST",c);load();
+}
+function csv(rows,name){
+  var t=rows.map(function(r){return r.map(function(c){return'"'+String(c==null?"":c).replace(/"/g,'""')+'"'}).join(",")}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv"}));a.download=name;a.click()}
+function exportContacts(){csv([["Name","Brand","Brand category","Phone","Email","Instagram / Facebook","Notes"]].concat(cts.map(function(c){return[c.name,c.business,c.category,c.phone,c.email,c.social,c.notes]})),"contacts.csv")}
+function exportCsv(){csv([["Received","Event","Booth type","Booking length","Total (S$)","Name","Business","Brand category","Phone","Email","Instagram / Facebook","Booths","Note","Status"]].concat(bk.map(function(b){return[b.created_at,b.event_title,b.booth_type,b.duration,b.total,b.name,b.business,b.category,b.phone,b.email,b.social,b.qty,b.note,b.status]})),"bookings.csv")}
+
+renderThumbs();
+if(PW)api("ping").then(start).catch(function(){sessionStorage.removeItem("pw")});
+</script>
+</body>
+</html>
