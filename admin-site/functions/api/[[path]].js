@@ -114,6 +114,9 @@ export async function onRequest({ request: r, env, params }) {
       if (b.email) form.set("email", b.email);
       form.set("purpose", `${b.event_title || "Event"}: ${b.qty} x ${b.booth_type || "booth"}, ${b.duration}`.slice(0, 200));
       form.set("reference_number", "BYE-" + b.id);
+      // Link stops working after a set time (HitPay reads this in Singapore time). Default 72 hours; change with the PAY_EXPIRY_HOURS setting.
+      const hrs = Math.min(Math.max(Number(env.PAY_EXPIRY_HOURS) || 72, 1), 24 * 60);
+      form.set("expiry_date", new Date(Date.now() + (hrs + 8) * 3600e3).toISOString().slice(0, 19).replace("T", " "));
       if (env.PUBLIC_URL) form.set("webhook", env.PUBLIC_URL.replace(/\/$/, "") + "/api/hitpay"); // lets HitPay mark it Paid by itself
       const j = await hp(env, "/payment-requests", { method: "POST", body: form });
       if (!j.id || !j.url) throw expose("HitPay didn't return a payment link.");
