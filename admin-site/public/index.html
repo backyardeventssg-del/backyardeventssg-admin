@@ -93,7 +93,7 @@ table select{min-width:120px}
       <label>Brand category<select id="fbCat" onchange="renderBookings()"></select></label>
       <label>Status<select id="fbStatus" onchange="renderBookings()"></select></label>
       <span class="sp"></span>
-      <button class="g" onclick="checkAll()">Check payments</button><button class="g" onclick="exportCsv()">Download bookings (CSV)</button>
+      <button class="g" onclick="checkAll()">Check payments</button><button class="g" onclick="hookLog()">HitPay reports</button><button class="g" onclick="exportCsv()">Download bookings (CSV)</button>
     </div>
     <p class="hint" id="count" style="margin:0 0 8px"></p>
     <div class="box scroll"><table>
@@ -336,6 +336,15 @@ async function backup(){try{var r=await fetch("/api/backup",{headers:{authorizat
 async function setSt(id,s){await api("bookings/"+id,"PATCH",{status:s});load()}
 async function delB(id){if(confirm("Delete this booking for good?")){await api("bookings/"+id,"DELETE");load()}}
 
+/* ---------- what HitPay has reported ---------- */
+async function hookLog(){
+  var d=$("#payDlg"),box=$("#payBody");box.innerHTML="<p>Loading...</p>";if(!d.open)d.showModal();
+  try{var l=await api("hooklog");
+    box.innerHTML='<h2 style="margin-top:0">Reports from HitPay</h2><p class="hint">Every time HitPay tells the website about a payment, it shows here (newest first). If nothing is listed after a payment, HitPay is not reaching the site.</p>'+
+    (l.length?l.map(function(x){return '<div style="border-top:1px solid #ddd;padding:8px 0"><b>'+esc(x.at.replace("T"," ").slice(0,19))+' UTC</b> ('+esc(x.kind)+')<br>'+esc(x.result)+'<br><small style="word-break:break-all;color:#666">'+esc(x.body||"")+'</small></div>'}).join(""):'<p><b>Nothing received yet.</b></p>')+
+    '<p><button class="g" onclick="$(\'#payDlg\').close()">Close</button></p>'}
+  catch(e){box.innerHTML='<p class="err">'+esc(e.message)+'</p><p><button class="g" onclick="$(\'#payDlg\').close()">Close</button></p>'}
+}
 /* ---------- payment link ---------- */
 async function pay(id,regen){
   var d=$("#payDlg"),box=$("#payBody");box.innerHTML="<p>Creating the payment link...</p>";if(!d.open)d.showModal();
