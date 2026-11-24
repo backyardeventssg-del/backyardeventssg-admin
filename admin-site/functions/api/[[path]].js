@@ -69,24 +69,38 @@ const isPaid = (j) =>
   ["completed", "succeeded"].includes(String(j.status).toLowerCase()) ||
   (j.payments || []).some((p) => ["completed", "succeeded"].includes(String(p.status).toLowerCase()));
 
-// Emails (Resend). Safe to call anywhere: does nothing until RESEND_API_KEY and MAIL_FROM are set.
-async function sendMail(env, to, subject, text) {
-  if (!env.RESEND_API_KEY || !env.MAIL_FROM || !to) return;
+// Emails (Resend). Every attempt is written to the "HitPay reports" list so a failure is never silent.
+async function logMail(db, result, body) {
   try {
-    await fetch("https://api.resend.com/emails", {
+    const cur = await db.prepare("SELECT value FROM settings WHERE key = 'hooklog'").first();
+    const list = cur ? JSON.parse(cur.value) : [];
+    list.unshift({ at: new Date().toISOString(), kind: "email", result, body: String(body || "").slice(0, 300) });
+    await db.prepare("INSERT INTO settings (key, value) VALUES ('hooklog', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").bind(JSON.stringify(list.slice(0, 20))).run();
+  } catch { /* logging must never break a payment */ }
+}
+async function sendMail(env, db, to, subject, text) {
+  const list = Array.isArray(to) ? to : to ? [to] : [];
+  const missing = ["RESEND_API_KEY", "MAIL_FROM"].filter((k) => !env[k]);
+  if (missing.length) { await logMail(db, "Email NOT sent: this admin project is missing " + missing.join(" and ") + ".", subject); return "missing " + missing.join(","); }
+  if (!list.length) { await logMail(db, "Email NOT sent: no address to send to (" + subject + "). For the owner email, add the NOTIFY_EMAIL secret to this admin project.", subject); return "no address"; }
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
-      body: JSON.stringify({ from: env.MAIL_FROM, to: Array.isArray(to) ? to : [to], subject, text }),
+      body: JSON.stringify({ from: env.MAIL_FROM, to: list, subject, text }),
     });
-  } catch { /* an email problem must never lose a payment */ }
+    const t = await r.text();
+    await logMail(db, r.ok ? "Email sent to " + list.join(", ") : "Email FAILED (" + r.status + ") to " + list.join(", "), subject + " | " + t);
+    return r.ok ? "sent" : "failed " + r.status;
+  } catch (e) { await logMail(db, "Email FAILED: " + e.message, subject); return "error"; }
 }
 const ownersOf = (env) => String(env.NOTIFY_EMAIL || "").split(",").map((x) => x.trim()).filter(Boolean);
 // Sends the "payment received" email to you and the confirmation to the vendor. Call only right after a booking changed to Paid.
 async function notifyPaid(env, db, bid) {
   const b = await db.prepare("SELECT b.*, e.title AS t, e.start_date AS sd, e.end_date AS ed, e.venue AS v FROM bookings b LEFT JOIN events e ON e.id = b.event_id WHERE b.id = ?").bind(bid).first();
   if (!b) return;
-  await sendMail(env, ownersOf(env), `Payment received: ${b.business || b.name}`, `${b.business || b.name} paid $${b.total} for ${b.t}. The booking is now marked Paid.`);
-  await sendMail(env, b.email, `Payment received: your booth at ${b.t}`,
+  await sendMail(env, db, ownersOf(env), `Payment received: ${b.business || b.name}`, `${b.business || b.name} paid $${b.total} for ${b.t}. The booking is now marked Paid.`);
+  await sendMail(env, db, b.email, `Payment received: your booth at ${b.t}`,
     `Hi ${b.name},\n\nThank you, we've received your payment of $${b.total}. Your booth is confirmed.\n\n` +
     `Market: ${b.t}\nDates: ${b.sd} to ${b.ed}\n${b.v ? "Venue: " + b.v + "\n" : ""}Booth: ${b.qty || 1} x ${b.booth_type} (${b.duration})\n\n` +
     `We'll be in touch on WhatsApp with load-in details. If anything looks wrong, just reply to our WhatsApp chat.\n\nBackyard Events SG`);
@@ -161,6 +175,12 @@ export async function onRequest({ request: r, env, params }) {
       const paid = isPaid(j);
       if (paid) await markPaid(env, db, id);
       return J({ status: j.status || "unknown", paid });
+    }
+
+    if (a === "mailtest" && m === "POST") {
+      const to = ownersOf(env);
+      const r = await sendMail(env, db, to, "Test email from your admin site", "If you can read this, payment emails from the admin site will reach you.");
+      return J({ result: r, to, from: env.MAIL_FROM || null, hasKey: !!env.RESEND_API_KEY });
     }
 
     if (a === "hooklog" && m === "GET") {
