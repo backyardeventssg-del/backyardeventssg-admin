@@ -69,6 +69,35 @@ const isPaid = (j) =>
   ["completed", "succeeded"].includes(String(j.status).toLowerCase()) ||
   (j.payments || []).some((p) => ["completed", "succeeded"].includes(String(p.status).toLowerCase()));
 
+// Emails (Resend). Safe to call anywhere: does nothing until RESEND_API_KEY and MAIL_FROM are set.
+async function sendMail(env, to, subject, text) {
+  if (!env.RESEND_API_KEY || !env.MAIL_FROM || !to) return;
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { authorization: "Bearer " + env.RESEND_API_KEY, "content-type": "application/json" },
+      body: JSON.stringify({ from: env.MAIL_FROM, to: Array.isArray(to) ? to : [to], subject, text }),
+    });
+  } catch { /* an email problem must never lose a payment */ }
+}
+const ownersOf = (env) => String(env.NOTIFY_EMAIL || "").split(",").map((x) => x.trim()).filter(Boolean);
+// Sends the "payment received" email to you and the confirmation to the vendor. Call only right after a booking changed to Paid.
+async function notifyPaid(env, db, bid) {
+  const b = await db.prepare("SELECT b.*, e.title AS t, e.start_date AS sd, e.end_date AS ed, e.venue AS v FROM bookings b LEFT JOIN events e ON e.id = b.event_id WHERE b.id = ?").bind(bid).first();
+  if (!b) return;
+  await sendMail(env, ownersOf(env), `Payment received: ${b.business || b.name}`, `${b.business || b.name} paid $${b.total} for ${b.t}. The booking is now marked Paid.`);
+  await sendMail(env, b.email, `Payment received: your booth at ${b.t}`,
+    `Hi ${b.name},\n\nThank you, we've received your payment of $${b.total}. Your booth is confirmed.\n\n` +
+    `Market: ${b.t}\nDates: ${b.sd} to ${b.ed}\n${b.v ? "Venue: " + b.v + "\n" : ""}Booth: ${b.qty || 1} x ${b.booth_type} (${b.duration})\n\n` +
+    `We'll be in touch on WhatsApp with load-in details. If anything looks wrong, just reply to our WhatsApp chat.\n\nBackyard Events SG`);
+}
+// Marks one booking Paid and sends the emails, but only the first time (so nobody gets two emails).
+async function markPaid(env, db, bid) {
+  const res = await db.prepare("UPDATE bookings SET status = 'Paid' WHERE id = ? AND status != 'Paid'").bind(bid).run();
+  if (res.meta && res.meta.changes) { await notifyPaid(env, db, bid); return true; }
+  return false;
+}
+
 export async function onRequest({ request: r, env, params }) {
   const [a, id, sub] = params.path || [];
   const m = r.method;
@@ -117,6 +146,8 @@ export async function onRequest({ request: r, env, params }) {
       // Link stops working after a set time (HitPay reads this in Singapore time). Default 72 hours; change with the PAY_EXPIRY_HOURS setting.
       const hrs = Math.min(Math.max(Number(env.PAY_EXPIRY_HOURS) || 72, 1), 24 * 60);
       form.set("expiry_date", new Date(Date.now() + (hrs + 8) * 3600e3).toISOString().slice(0, 19).replace("T", " "));
+      // After paying, HitPay sends the vendor back to this page, which checks the payment with HitPay and sends the emails.
+      if (env.PUBLIC_URL) form.set("redirect_url", env.PUBLIC_URL.replace(/\/$/, "") + "/api/paid");
       if (env.PUBLIC_URL) form.set("webhook", env.PUBLIC_URL.replace(/\/$/, "") + "/api/hitpay"); // lets HitPay mark it Paid by itself
       const j = await hp(env, "/payment-requests", { method: "POST", body: form });
       if (!j.id || !j.url) throw expose("HitPay didn't return a payment link.");
@@ -128,7 +159,7 @@ export async function onRequest({ request: r, env, params }) {
       if (!b || !b.pay_id) return J({ status: "none", paid: false });
       const j = await hp(env, "/payment-requests/" + encodeURIComponent(b.pay_id));
       const paid = isPaid(j);
-      if (paid) await db.prepare("UPDATE bookings SET status = 'Paid' WHERE id = ?").bind(id).run();
+      if (paid) await markPaid(env, db, id);
       return J({ status: j.status || "unknown", paid });
     }
 
@@ -182,7 +213,7 @@ export async function onRequest({ request: r, env, params }) {
       for (const b of results) {
         try {
           const j = await hp(env, "/payment-requests/" + encodeURIComponent(b.pay_id));
-          if (isPaid(j)) { await db.prepare("UPDATE bookings SET status = 'Paid' WHERE id = ?").bind(b.id).run(); paid++; }
+          if (isPaid(j)) { await markPaid(env, db, b.id); paid++; }
         } catch (e) { if (results.length === 1) throw e; }
       }
       return J({ checked: results.length, paid });
