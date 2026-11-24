@@ -132,6 +132,11 @@ export async function onRequest({ request: r, env, params }) {
       return J({ status: j.status || "unknown", paid });
     }
 
+    if (a === "hooklog" && m === "GET") {
+      const cur = await db.prepare("SELECT value FROM settings WHERE key = 'hooklog'").first();
+      return J(cur ? JSON.parse(cur.value) : []);
+    }
+
     if (a === "events" && m === "GET") {
       const { results } = await db
         .prepare(
